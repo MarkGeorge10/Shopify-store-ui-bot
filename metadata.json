@@ -1,0 +1,5 @@
+{
+  "name": "Shopify AI Concierge",
+  "description": "An AI-powered shopping assistant connected to a Shopify storefront.",
+  "requestFramePermissions": []
+}
