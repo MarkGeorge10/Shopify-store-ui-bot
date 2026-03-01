@@ -292,18 +292,46 @@ export default function PublicStorefront() {
         }
     };
 
-    const handleImageSelect = (file: File | null) => {
+    const handleImageSelect = async (file: File | null) => {
         if (!file) {
             setImageFile(null);
             setPreviewImage(null);
             return;
         }
         setImageFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreviewImage(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+
+        try {
+            // Compress image to max 800px width before base64 string conversion
+            const compressedBase64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new window.Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const maxWidth = 800;
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) return reject('Failed to get 2d context');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                    img.onerror = reject;
+                    img.src = e.target?.result as string;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            setPreviewImage(compressedBase64);
+        } catch (err) {
+            console.error('Failed to compress image:', err);
+        }
     };
 
     const handleRemoveImage = () => {

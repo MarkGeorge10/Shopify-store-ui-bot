@@ -73,6 +73,15 @@ export async function apiPost<T = any>(path: string, body?: object): Promise<T> 
     return handleResponse<T>(res);
 }
 
+export async function apiPut<T = any>(path: string, body?: object): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    return handleResponse<T>(res);
+}
+
 export async function apiDelete<T = any>(path: string): Promise<T> {
     const res = await fetch(`${API_URL}${path}`, {
         method: 'DELETE',

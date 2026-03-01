@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Store, Plus, Trash2, Pencil, ExternalLink, Copy, Check,
     Loader2, LogOut, Sparkles, Globe, ArrowRight, AlertCircle, X,
+    Database, RefreshCw, ToggleLeft, ToggleRight, BarChart2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Clock
 } from 'lucide-react';
-import { apiGet, apiPost, apiDelete, isAuthenticated, clearToken } from '@/lib/api';
+import { apiGet, apiPost, apiDelete, apiPut, isAuthenticated, clearToken } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -18,6 +19,36 @@ interface StoreItem {
     shopify_domain: string;
     is_active: boolean;
     public_url: string;
+    enhanced_search_enabled?: boolean;
+    rag_index_status?: string;
+}
+
+interface RagMetrics {
+    total_searches: number;
+    pinecone_searches: number;
+    native_searches: number;
+    fallback_rate: number;
+    avg_latency_ms: number;
+    avg_pinecone_score: number | null;
+    avg_results_count: number;
+    avg_ndcg: number | null;
+    thumbs_up: number;
+    thumbs_down: number;
+    feedback_ratio: number | null;
+    days: number;
+}
+
+interface SearchLogItem {
+    id: string;
+    query: string | null;
+    has_image: boolean;
+    provider: string;
+    results_count: number;
+    pinecone_top_score: number | null;
+    fallback_used: boolean;
+    latency_ms: number;
+    user_feedback: number | null;
+    created_at: string;
 }
 
 interface BackendUser {
@@ -33,6 +64,12 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
     const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+    // Analytics panel state per store
+    const [openAnalytics, setOpenAnalytics] = useState<string | null>(null);
+    const [metricsMap, setMetricsMap] = useState<Record<string, RagMetrics>>({});
+    const [logsMap, setLogsMap] = useState<Record<string, SearchLogItem[]>>({});
+    const [metricsLoading, setMetricsLoading] = useState<string | null>(null);
 
     // Add store form
     const [formName, setFormName] = useState('My Store');
@@ -58,8 +95,13 @@ export default function DashboardPage() {
             ]);
             setUser(me);
             setStores(storeList);
-        } catch {
-            router.push('/');
+        } catch (err: any) {
+            console.error('Failed to load dashboard data:', err);
+            if (err?.status === 401) {
+                router.push('/');
+            } else {
+                alert('Dashboard load error: ' + (err?.detail || err?.message || 'Unknown error. Check backend logs.'));
+            }
         } finally {
             setLoading(false);
         }
@@ -110,9 +152,94 @@ export default function DashboardPage() {
         setTimeout(() => setCopiedSlug(null), 2000);
     };
 
+    const handleToggleRAG = async (storeId: string, currentVal: boolean | undefined) => {
+        try {
+            const newVal = !currentVal;
+            // Optimistic update
+            setStores(prev => prev.map(s => s.id === storeId ? {
+                ...s,
+                enhanced_search_enabled: newVal,
+                rag_index_status: newVal ? 'building' : 'idle'
+            } : s));
+
+            if (newVal) {
+                await apiPost(`/api/store/${storeId}/enhanced-search/enable`, {});
+            } else {
+                await apiPost(`/api/store/${storeId}/enhanced-search/disable`, {});
+            }
+        } catch {
+            alert('Failed to toggle Enhanced AI Search. Please check your backend logs.');
+            // Revert on error
+            setStores(prev => prev.map(s => s.id === storeId ? { ...s, enhanced_search_enabled: currentVal } : s));
+        }
+    };
+
+    // Poll status for stores actively building
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            // Use functional state update to avoid stale closures and infinite re-renders
+            setStores(currentStores => {
+                const buildingStores = currentStores.filter(s => s.rag_index_status === 'building');
+                if (buildingStores.length === 0) return currentStores;
+
+                // We don't want to block the state updater, so we kick off async calls
+                // and they will trigger another state update when done.
+                buildingStores.forEach(async (store) => {
+                    try {
+                        const status = await apiGet<any>(`/api/store/${store.id}/enhanced-search/status`);
+                        if (status.rag_index_status !== 'building') {
+                            setStores(prev => prev.map(s => s.id === store.id ? {
+                                ...s,
+                                enhanced_search_enabled: status.enhanced_search_enabled,
+                                rag_index_status: status.rag_index_status
+                            } : s));
+                        }
+                    } catch (e) {
+                        console.error("Status check failed for store", store.id, e);
+                    }
+                });
+
+                return currentStores; // Return current unchanged while async finishes
+            });
+        }, 3000); // Check every 3 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleReindex = async (storeId: string) => {
+        try {
+            setStores(prev => prev.map(s => s.id === storeId ? { ...s, rag_index_status: 'building' } : s));
+            await apiPost(`/api/store/${storeId}/enhanced-search/reindex`);
+        } catch (err: any) {
+            alert(err?.detail || 'Failed to start re-index.');
+            setStores(prev => prev.map(s => s.id === storeId ? { ...s, rag_index_status: 'error' } : s));
+        }
+    };
+
     const handleLogout = () => {
         clearToken();
         router.push('/');
+    };
+
+    const handleOpenAnalytics = async (storeId: string) => {
+        if (openAnalytics === storeId) {
+            setOpenAnalytics(null);
+            return;
+        }
+        setOpenAnalytics(storeId);
+        setMetricsLoading(storeId);
+        try {
+            const [metrics, logs] = await Promise.all([
+                apiGet<RagMetrics>(`/api/store/${storeId}/rag/metrics?days=7`),
+                apiGet<SearchLogItem[]>(`/api/store/${storeId}/rag/logs?limit=20`),
+            ]);
+            setMetricsMap(prev => ({ ...prev, [storeId]: metrics }));
+            setLogsMap(prev => ({ ...prev, [storeId]: logs }));
+        } catch (e) {
+            console.error('Failed to load RAG analytics', e);
+        } finally {
+            setMetricsLoading(null);
+        }
     };
 
     const inputCls =
@@ -294,6 +421,150 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
 
+                                {/* AI Enhanced Search Options */}
+                                <div className="bg-white/5 border border-white/5 rounded-xl p-4 mb-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4 text-purple-400" />
+                                            <span className="text-sm font-semibold text-white">Enhanced AI Search (RAG)</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleToggleRAG(store.id, store.enhanced_search_enabled)}
+                                            className={`transition-colors ${store.enhanced_search_enabled ? 'text-emerald-400' : 'text-white/30 hover:text-white/50'}`}
+                                        >
+                                            {store.enhanced_search_enabled ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
+                                        </button>
+                                    </div>
+
+                                    {store.enhanced_search_enabled && (
+                                        <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                                            <div className="flex items-center gap-2">
+                                                <Database className="w-4 h-4 text-white/40" />
+                                                <span className="text-xs text-white/60">Status:</span>
+                                                <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${store.rag_index_status === 'ready' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                    store.rag_index_status === 'building' ? 'bg-amber-500/10 text-amber-400 animate-pulse' :
+                                                        store.rag_index_status === 'error' ? 'bg-red-500/10 text-red-400' :
+                                                            'bg-white/10 text-white/50'
+                                                    }`}>
+                                                    {store.rag_index_status || 'idle'}
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleReindex(store.id)}
+                                                disabled={store.rag_index_status === 'building'}
+                                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 text-white/70"
+                                            >
+                                                <RefreshCw className={`w-3.5 h-3.5 ${store.rag_index_status === 'building' ? 'animate-spin' : ''}`} />
+                                                Re-Index
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* RAG Analytics Panel */}
+                                <div className="mb-4">
+                                    <button
+                                        onClick={() => handleOpenAnalytics(store.id)}
+                                        className="w-full flex items-center justify-between px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm transition-colors group/analytics"
+                                    >
+                                        <span className="flex items-center gap-2 text-white/70 group-hover/analytics:text-white">
+                                            <BarChart2 className="w-4 h-4 text-indigo-400" />
+                                            RAG Analytics (7d)
+                                        </span>
+                                        {metricsLoading === store.id
+                                            ? <Loader2 className="w-4 h-4 text-white/40 animate-spin" />
+                                            : openAnalytics === store.id ? <ChevronUp className="w-4 h-4 text-white/40" /> : <ChevronDown className="w-4 h-4 text-white/40" />
+                                        }
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {openAnalytics === store.id && metricsMap[store.id] && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="mt-2 bg-black/20 border border-white/10 rounded-xl p-4 space-y-4">
+                                                    {/* Metrics Grid */}
+                                                    {(() => {
+                                                        const m = metricsMap[store.id];
+                                                        return (
+                                                            <>
+                                                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                                                    <div className="bg-white/5 rounded-lg p-3">
+                                                                        <div className="text-white/40 mb-1">Total Searches</div>
+                                                                        <div className="text-white font-bold text-lg">{m.total_searches}</div>
+                                                                        <div className="text-white/30 mt-0.5">{m.pinecone_searches} Pinecone · {m.native_searches} Native</div>
+                                                                    </div>
+                                                                    <div className="bg-white/5 rounded-lg p-3">
+                                                                        <div className="text-white/40 mb-1">Fallback Rate</div>
+                                                                        <div className={`font-bold text-lg ${m.fallback_rate > 0.2 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                                            {(m.fallback_rate * 100).toFixed(0)}%
+                                                                        </div>
+                                                                        <div className="text-white/30 mt-0.5">{m.fallback_rate > 0.2 ? '⚠ High' : '✓ Good'}</div>
+                                                                    </div>
+                                                                    <div className="bg-white/5 rounded-lg p-3">
+                                                                        <div className="text-white/40 mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Avg Latency</div>
+                                                                        <div className={`font-bold text-lg ${m.avg_latency_ms > 1000 ? 'text-amber-400' : 'text-white'}`}>{m.avg_latency_ms}ms</div>
+                                                                    </div>
+                                                                    <div className="bg-white/5 rounded-lg p-3">
+                                                                        <div className="text-white/40 mb-1">Avg Pinecone Score</div>
+                                                                        <div className={`font-bold text-lg ${m.avg_pinecone_score !== null && m.avg_pinecone_score > 0.75 ? 'text-emerald-400' : 'text-white'}`}>
+                                                                            {m.avg_pinecone_score !== null ? m.avg_pinecone_score.toFixed(3) : '—'}
+                                                                        </div>
+                                                                        {m.avg_ndcg !== null && <div className="text-white/30 mt-0.5">NDCG: {m.avg_ndcg.toFixed(3)}</div>}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Feedback */}
+                                                                {(m.thumbs_up + m.thumbs_down) > 0 && (
+                                                                    <div className="flex items-center gap-3 text-xs">
+                                                                        <span className="text-white/40">User Feedback:</span>
+                                                                        <span className="flex items-center gap-1 text-emerald-400"><ThumbsUp className="w-3 h-3" />{m.thumbs_up}</span>
+                                                                        <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="w-3 h-3" />{m.thumbs_down}</span>
+                                                                        {m.feedback_ratio !== null && (
+                                                                            <span className="text-white/40">({(m.feedback_ratio * 100).toFixed(0)}% positive)</span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Recent Queries */}
+                                                                {logsMap[store.id] && logsMap[store.id].length > 0 && (
+                                                                    <div>
+                                                                        <div className="text-xs text-white/40 mb-2 font-semibold uppercase tracking-wider">Recent Queries</div>
+                                                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                                                                            {logsMap[store.id].map(log => (
+                                                                                <div key={log.id} className="flex items-center justify-between text-xs bg-white/5 rounded-lg px-3 py-2">
+                                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${log.provider === 'pinecone' ? 'bg-purple-500/20 text-purple-300' : log.provider === 'hybrid' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/10 text-white/50'}`}>
+                                                                                            {log.provider}
+                                                                                        </span>
+                                                                                        <span className="text-white/70 truncate">{log.query || (log.has_image ? '🖼 Image search' : '—')}</span>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-2 shrink-0 ml-2 text-white/40">
+                                                                                        <span>{log.results_count} results</span>
+                                                                                        {log.pinecone_top_score !== null && <span className="text-purple-400">{log.pinecone_top_score.toFixed(2)}</span>}
+                                                                                        <span>{log.latency_ms}ms</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {m.total_searches === 0 && (
+                                                                    <p className="text-center text-white/30 text-xs py-2">No searches yet — use the storefront to generate data.</p>
+                                                                )}
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
                                     <a
@@ -313,6 +584,7 @@ export default function DashboardPage() {
                                     </button>
                                 </div>
                             </motion.div>
+
                         ))}
                     </div>
                 )}
