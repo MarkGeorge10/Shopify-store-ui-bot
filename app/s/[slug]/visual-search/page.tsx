@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Sparkles, Loader2, Image as ImageIcon, Upload, X, Search, ArrowLeft } from 'lucide-react';
-import StorefrontHeader from '@/components/StorefrontHeader';
-import ProductGrid from '@/components/ProductGrid';
+import { Sparkles, Loader2, Image as ImageIcon, Upload, X, Search, ArrowLeft, ShoppingBag, Plus, UserRound } from 'lucide-react';
+import Image from 'next/image';
 import useShopperAuth from '@/hooks/useShopperAuth';
-import type { Product, PageInfo, Cart, ViewMode } from '@/types';
+import type { Product } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -134,14 +133,20 @@ export default function VisualSearchPage() {
 
     return (
         <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans flex flex-col">
-            <StorefrontHeader
-                slug={slug}
-                cartItemCount={0}
-                onCartClick={() => { }}
-                customer={customer}
-                onLoginClick={() => setShowAuthModal(true)}
-                onLogoutClick={logout}
-            />
+            {/* Minimal nav — StorefrontHeader props don't match this page's context */}
+            <header className="px-6 py-4 border-b border-neutral-200/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center">
+                <span className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-indigo-600" />
+                    Visual Search
+                </span>
+                <button
+                    onClick={customer ? handleLogout : () => setShowAuthModal(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 rounded-xl transition-all"
+                >
+                    <UserRound className="w-4 h-4" />
+                    {customer ? `${customer.firstName} (Sign out)` : 'Sign In'}
+                </button>
+            </header>
 
             <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
                 <button
@@ -250,10 +255,35 @@ export default function VisualSearchPage() {
                                     <ImageIcon className="w-5 h-5 text-indigo-500" />
                                     Visual Matches ({products.length})
                                 </h2>
-                                <ProductGrid
-                                    products={products}
-                                    onAddToCart={handleAddToCart}
-                                />
+                                {/* Inline grid — ProductGrid requires many props not available here */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    {products.map((product) => (
+                                        <div key={product.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-neutral-100 flex flex-col">
+                                            <div className="aspect-square relative bg-neutral-100 overflow-hidden">
+                                                {product.imageUrl ? (
+                                                    <Image src={product.imageUrl} alt={product.title} fill className="object-cover" referrerPolicy="no-referrer" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                                                        <ShoppingBag className="w-12 h-12" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="p-4 flex flex-col flex-1 gap-2">
+                                                <h3 className="font-medium text-neutral-900 line-clamp-2 text-sm">{product.title}</h3>
+                                                <div className="flex items-center justify-between mt-auto pt-2">
+                                                    <p className="text-lg font-semibold text-indigo-600">{product.currency} {parseFloat(product.price).toFixed(2)}</p>
+                                                    <button
+                                                        onClick={handleAddToCart}
+                                                        className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                        title="Add to Cart"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </>
                         ) : (
                             <div className="text-center py-20 border-2 border-dashed border-neutral-200 rounded-3xl">

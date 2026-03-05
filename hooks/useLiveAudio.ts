@@ -70,9 +70,11 @@ export function useLiveAudio({ slug, shopperEmail, onToolCall, onAIText, onTurnC
             audioContextRef.current = audioContext;
 
             // 2. Open WebSocket to backend relay
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const emailParam = shopperEmail ? `&shopper_email=${encodeURIComponent(shopperEmail)}` : '';
-            const wsUrl = `${protocol}//${window.location.host.replace(':3000', ':8000')}/api/public/${slug}/live-chat?${emailParam}`;
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const protocol = apiUrl.startsWith('https') ? 'wss:' : 'ws:';
+            const host = apiUrl.replace(/^https?:\/\//, '');
+            const emailParam = shopperEmail ? `shopper_email=${encodeURIComponent(shopperEmail)}` : '';
+            const wsUrl = `${protocol}//${host}/api/public/${slug}/live-chat${emailParam ? `?${emailParam}` : ''}`;
             const socket = new WebSocket(wsUrl);
             socketRef.current = socket;
             socket.binaryType = 'arraybuffer';
