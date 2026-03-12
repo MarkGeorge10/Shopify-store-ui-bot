@@ -1,197 +1,197 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Loader2, Bot, User, Image as ImageIcon, X, Mic, MicOff } from 'lucide-react';
+import { Send, Image as ImageIcon, X, Loader2, Mic, Bot, User, Sparkles } from 'lucide-react';
 import Image from 'next/image';
-import { renderMessageText } from '@/utils/renderMessageText';
 import type { Message } from '@/types';
 
 interface ChatPanelProps {
     messages: Message[];
     input: string;
-    isLoading: boolean;
-    previewImage: string | null;
-    messagesEndRef: React.RefObject<HTMLDivElement | null>;
-    onInputChange: (value: string) => void;
+    setInput: (v: string) => void;
+    handleSend: () => void;
     onImageSelect: (file: File | null) => void;
-    onRemoveImage: () => void;
-    onSend: (e?: React.FormEvent) => void;
-    isLive?: boolean;
-    liveLevel?: number;
-    onToggleLive?: () => void;
+    imagePreview: string | null;
+    setImagePreview: (v: string | null) => void;
+    isTyping: boolean;
+    isLive: boolean;
+    onToggleLive: () => void;
+    onClose?: () => void;
 }
 
 export default function ChatPanel({
-    messages,
-    input,
-    isLoading,
-    previewImage,
-    messagesEndRef,
-    onInputChange,
-    onImageSelect,
-    onRemoveImage,
-    onSend,
-    isLive = false,
-    liveLevel = 0,
-    onToggleLive,
+    messages, input, setInput, handleSend, onImageSelect, imagePreview, setImagePreview, isTyping, isLive, onToggleLive, onClose,
 }: ChatPanelProps) {
+    const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleImageBtnClick = () => {
-        fileInputRef.current?.click();
-    };
+    useEffect(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, [messages, isTyping]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            onImageSelect(file);
-        }
-    };
     return (
-        <>
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex flex-col h-full bg-white relative overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 flex items-center justify-between glass-light border-b border-emerald-100 z-10 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm"
+                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                        <Bot className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-sm font-bold text-emerald-950">Gemini Assistant</h2>
+                        <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Live Agent</span>
+                        </div>
+                    </div>
+                </div>
+                <button
+                    onClick={onToggleLive}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all ${isLive
+                        ? 'bg-red-500 text-white shadow-lg shadow-red-200 animate-pulse'
+                        : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                        }`}
+                >
+                    <Mic className={`w-3.5 h-3.5 ${isLive ? 'animate-bounce' : ''}`} />
+                    {isLive ? 'LIVE NOW' : 'GO LIVE'}
+                </button>
+ 
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-xl text-emerald-400 hover:bg-emerald-50 transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
+ 
+            {/* Messages */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar bg-emerald-50/20 min-h-0">
                 <AnimatePresence initial={false}>
-                    {messages.map((msg) => (
+                    {messages.length === 0 && !isTyping && (
                         <motion.div
-                            key={msg.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="h-full flex flex-col items-center justify-center text-center p-8"
                         >
-                            <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-neutral-100' : 'bg-indigo-50 text-indigo-600'
-                                    }`}
-                            >
-                                {msg.role === 'user'
-                                    ? <User className="w-4 h-4 text-neutral-600" />
-                                    : <Bot className="w-4 h-4" />}
+                            <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                                style={{ background: 'var(--gradient-1)', boxShadow: '0 8px 32px rgba(16,185,129,0.2)' }}>
+                                <Sparkles className="w-10 h-10 text-white" />
                             </div>
-                            <div
-                                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm flex flex-col gap-2 ${msg.role === 'user'
-                                    ? 'bg-neutral-900 text-white rounded-tr-sm'
-                                    : 'bg-white border border-neutral-100 shadow-sm text-neutral-800 rounded-tl-sm'
-                                    }`}
-                            >
-                                {msg.imageUrl && (
-                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-neutral-800/50 mb-1">
-                                        <Image
-                                            src={msg.imageUrl}
-                                            alt="Sent image"
-                                            fill
-                                            className="object-contain"
-                                            unoptimized // for local blobs
-                                        />
+                            <h3 className="text-xl font-bold text-emerald-950 mb-2">Welcome to your AI Concierge</h3>
+                            <p className="text-sm text-emerald-700/60 max-w-xs mb-8">
+                                I can help you find products, answer questions, or manage your shopping cart.
+                            </p>
+                            <div className="grid grid-cols-1 gap-2 w-full max-w-xs">
+                                {['Show me summer dresses', 'What are your best sellers?', 'Track my order'].map((q) => (
+                                    <button
+                                        key={q}
+                                        onClick={() => setInput(q)}
+                                        className="text-left px-4 py-3 rounded-2xl bg-white border border-emerald-100 text-sm text-emerald-800 hover:border-emerald-300 hover:bg-emerald-50 transition-all font-medium"
+                                    >
+                                        "{q}"
+                                    </button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {messages.map((m, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                            <div className={`flex gap-3 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center shadow-sm ${m.role === 'user'
+                                    ? 'bg-emerald-100 text-emerald-600'
+                                    : 'bg-emerald-600 text-white'
+                                    }`}>
+                                    {m.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                                </div>
+                                <div className="space-y-1">
+                                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user'
+                                        ? 'bubble-user'
+                                        : 'bubble-ai'
+                                        }`}>
+                                        {m.role === 'user' && m.imageUrl && (
+                                            <div className="mb-2 rounded-lg overflow-hidden border border-white/20">
+                                                <Image src={m.imageUrl} alt="upload" width={200} height={200} className="w-full object-cover" />
+                                            </div>
+                                        )}
+                                        {m.text}
                                     </div>
-                                )}
-                                {msg.text && (
-                                    <div>{renderMessageText(msg.text, msg.role as 'user' | 'model')}</div>
-                                )}
+                                    <p className="text-[10px] font-medium text-emerald-800/40 px-1">
+                                        {m.role === 'user' ? 'Sent' : 'Assistant'}
+                                    </p>
+                                </div>
                             </div>
                         </motion.div>
                     ))}
-                </AnimatePresence>
 
-                {isLoading && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                            <Bot className="w-4 h-4 text-indigo-600" />
-                        </div>
-                        <div className="bg-white border border-neutral-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                            <span className="text-sm text-neutral-500">Thinking...</span>
-                        </div>
-                    </motion.div>
-                )}
-                <div ref={messagesEndRef} />
+                    {isTyping && (
+                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
+                            <div className="flex gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
+                                    <Bot className="w-4 h-4" />
+                                </div>
+                                <div className="bubble-ai px-4 py-3 rounded-2xl flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* Input Area */}
-            <div className="p-4 bg-white border-t border-neutral-100">
-                {/* Image Preview */}
-                {previewImage && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-3 relative inline-block"
-                    >
-                        <div className="w-20 h-20 rounded-xl border border-neutral-200 overflow-hidden bg-neutral-50 shadow-sm">
-                            <Image
-                                src={previewImage}
-                                alt="Preview"
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
+            {/* Input */}
+            <div className="p-4 bg-white border-t border-emerald-100 shrink-0">
+                {imagePreview && (
+                    <div className="mb-3 relative inline-block p-1 border border-emerald-100 rounded-xl bg-emerald-50/50">
+                        <Image src={imagePreview} alt="preview" width={80} height={80} className="rounded-lg object-cover" />
                         <button
-                            onClick={onRemoveImage}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full shadow-md border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition-colors"
+                            onClick={() => setImagePreview(null)}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
                         >
-                            <X className="w-3 h-3 text-neutral-600" />
+                            <X className="w-3 h-3" />
                         </button>
-                    </motion.div>
+                    </div>
                 )}
-
-                <form onSubmit={onSend} className="relative flex items-center gap-2">
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept="image/*"
-                        className="hidden"
-                    />
+                <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-emerald-50/50 border border-emerald-100 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
                     <button
-                        type="button"
-                        onClick={handleImageBtnClick}
-                        className={`shrink-0 w-10 h-10 flex items-center justify-center rounded-full border transition-all
-                            ${previewImage
-                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                                : 'border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50'
-                            }`}
-                        disabled={isLoading}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2.5 text-emerald-500 hover:text-emerald-700 hover:bg-white rounded-xl transition-all"
+                        title="Upload image"
                     >
                         <ImageIcon className="w-5 h-5" />
                     </button>
-
-                    <div className="relative flex-1">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => onInputChange(e.target.value)}
-                            placeholder={isLive ? "Listening..." : (previewImage ? "Describe what to find..." : "Ask about products...")}
-                            className={`w-full bg-neutral-100 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-full py-3 pl-5 pr-24 text-sm transition-all outline-none ${isLive ? 'ring-2 ring-red-100' : ''}`}
-                            disabled={isLoading}
-                            readOnly={isLive}
-                        />
-                        <div className="absolute right-2 top-1.5 flex items-center gap-1.5">
-                            {onToggleLive && (
-                                <button
-                                    type="button"
-                                    onClick={onToggleLive}
-                                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-all relative
-                                        ${isLive ? 'bg-red-500 text-white animate-pulse' : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'}`}
-                                >
-                                    {isLive ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                                    {isLive && (
-                                        <div
-                                            className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-25"
-                                            style={{ transform: `scale(${1 + liveLevel * 2})` }}
-                                        />
-                                    )}
-                                </button>
-                            )}
-                            <button
-                                type="submit"
-                                disabled={(!input.trim() && !previewImage) || isLoading || isLive}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white disabled:opacity-50 disabled:bg-neutral-400 transition-colors"
-                            >
-                                <Send className="w-4 h-4 ml-0.5" />
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                    <input
+                        type="file" ref={fileInputRef} className="hidden" accept="image/*"
+                        onChange={(e) => onImageSelect(e.target.files?.[0] || null)}
+                    />
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                        placeholder="Ask anything..."
+                        className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-emerald-950 placeholder:text-emerald-300"
+                    />
+                    <button
+                        onClick={handleSend}
+                        disabled={!input.trim() && !imagePreview}
+                        className="btn-primary p-2.5 rounded-xl disabled:opacity-50 disabled:scale-100 active:scale-95"
+                    >
+                        <Send className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
-        </>
+        </div>
     );
 }

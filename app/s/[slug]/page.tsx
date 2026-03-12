@@ -262,27 +262,29 @@ export default function PublicStorefront() {
                     });
                 }
             } else if (action === 'increase') {
-                const item = cart?.items.find((i) => i.id === id);
+                const item = cart?.items.find((i) => i.id === id || i.variantId === id);
                 if (!item || !cart) return;
                 result = await publicPost(`/api/public/${slug}/cart/update`, {
-                    cart_id: cart.id, line_id: id, quantity: item.quantity + 1,
+                    cart_id: cart.id, line_id: item.id, quantity: item.quantity + 1,
                 });
             } else if (action === 'decrease') {
-                const item = cart?.items.find((i) => i.id === id);
+                const item = cart?.items.find((i) => i.id === id || i.variantId === id);
                 if (!item || !cart) return;
                 if (item.quantity <= 1) {
                     result = await publicPost(`/api/public/${slug}/cart/remove`, {
-                        cart_id: cart.id, line_id: id,
+                        cart_id: cart.id, line_id: item.id,
                     });
                 } else {
                     result = await publicPost(`/api/public/${slug}/cart/update`, {
-                        cart_id: cart.id, line_id: id, quantity: item.quantity - 1,
+                        cart_id: cart.id, line_id: item.id, quantity: item.quantity - 1,
                     });
                 }
             } else if (action === 'remove') {
                 if (!cart) return;
+                const item = cart?.items.find((i) => i.id === id || i.variantId === id);
+                if (!item) return;
                 result = await publicPost(`/api/public/${slug}/cart/remove`, {
-                    cart_id: cart.id, line_id: id,
+                    cart_id: cart.id, line_id: item.id,
                 });
             }
             if (result) setCart(mapCart(result));
@@ -437,32 +439,10 @@ export default function PublicStorefront() {
         });
     };
 
-    // ── Loading / Error ─────────────────────────────────────────────────
-    if (storeLoading) {
-        return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-            </div>
-        );
-    }
-
-    if (storeError) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center text-white">
-                <div className="text-center">
-                    <ShoppingBag className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold mb-2">Store Not Found</h1>
-                    <p className="text-white/50">{storeError}</p>
-                </div>
-            </div>
-        );
-    }
-
     // ── Checkout ─────────────────────────────────────────────────────────
     const handlePlaceOrder = () => {
         // If they are not logged in, ask them to log in or register before checking out
         if (!shopperAuth.customer) {
-            shopperAuth.setAuthTab('login');
             shopperAuth.setShowAuthModal(true);
             return;
         }
@@ -484,29 +464,17 @@ export default function PublicStorefront() {
     return (
         <div className="flex h-screen bg-neutral-50 overflow-hidden font-sans">
             {/* Left: Chat Panel */}
-            <div className="relative w-full md:w-[400px] lg:w-[450px] flex flex-col bg-white border-r border-neutral-200 shadow-sm z-10">
-                <div className="flex items-center gap-3 px-6 py-5 border-b border-neutral-100 bg-white">
-                    <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center shadow-sm">
-                        <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <h1 className="font-semibold text-neutral-900">{storeName}</h1>
-                        <p className="text-xs text-neutral-500">AI Shopping Assistant</p>
-                    </div>
-                </div>
-
+            <div className="relative w-full md:w-[400px] lg:w-[450px] flex flex-col bg-white border-r border-neutral-200 shadow-sm z-10 h-full overflow-hidden">
                 <ChatPanel
                     messages={messages}
                     input={chatInput}
-                    isLoading={chatLoading}
-                    previewImage={previewImage}
-                    messagesEndRef={messagesEndRef}
-                    onInputChange={setChatInput}
+                    setInput={setChatInput}
+                    handleSend={handleSend}
                     onImageSelect={handleImageSelect}
-                    onRemoveImage={handleRemoveImage}
-                    onSend={handleSend}
+                    imagePreview={previewImage}
+                    setImagePreview={setPreviewImage}
+                    isTyping={chatLoading}
                     isLive={isLive}
-                    liveLevel={level}
                     onToggleLive={toggleLive}
                 />
             </div>

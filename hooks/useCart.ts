@@ -66,7 +66,7 @@ export function useCart({ onViewCart }: UseCartOptions) {
 
     const handleCartAction = async (
         action: 'add' | 'remove' | 'increase' | 'decrease',
-        variantId: string,
+        lineOrVariantId: string,
     ) => {
         if (action === 'add') onViewCart();
 
@@ -77,19 +77,19 @@ export function useCart({ onViewCart }: UseCartOptions) {
                 if (!cart?.id) {
                     // No cart exists yet — create one with initial line
                     result = await apiPost<ApiCartResponse>('/api/cart/create', {
-                        variant_id: variantId,
+                        variant_id: lineOrVariantId,
                         quantity: 1,
                     });
                 } else {
                     result = await apiPost<ApiCartResponse>('/api/cart/add', {
                         cart_id: cart.id,
-                        variant_id: variantId,
+                        variant_id: lineOrVariantId,
                         quantity: 1,
                     });
                 }
             } else if (action === 'remove') {
                 if (!cart?.id) return;
-                const item = cart.items.find((i) => i.variantId === variantId || i.id === variantId);
+                const item = cart.items.find((i) => i.variantId === lineOrVariantId || i.id === lineOrVariantId);
                 if (!item) return;
                 result = await apiPost<ApiCartResponse>('/api/cart/remove', {
                     cart_id: cart.id,
@@ -98,7 +98,7 @@ export function useCart({ onViewCart }: UseCartOptions) {
             } else {
                 // increase or decrease
                 if (!cart?.id) return;
-                const item = cart.items.find((i) => i.variantId === variantId || i.id === variantId);
+                const item = cart.items.find((i) => i.variantId === lineOrVariantId || i.id === lineOrVariantId);
                 if (!item) return;
 
                 const newQuantity =

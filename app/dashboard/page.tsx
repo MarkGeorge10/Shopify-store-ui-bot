@@ -18,6 +18,7 @@ interface StoreItem {
     slug: string;
     shopify_domain: string;
     is_active: boolean;
+    default_mode: 'storefront' | 'admin';
     public_url: string;
     enhanced_search_enabled?: boolean;
     rag_index_status?: string;
@@ -213,6 +214,18 @@ export default function DashboardPage() {
         } catch (err: any) {
             alert(err?.detail || 'Failed to start re-index.');
             setStores(prev => prev.map(s => s.id === storeId ? { ...s, rag_index_status: 'error' } : s));
+        }
+    };
+
+    const handleUpdateMode = async (storeId: string, mode: 'storefront' | 'admin') => {
+        // Optimistic update
+        setStores(prev => prev.map(s => s.id === storeId ? { ...s, default_mode: mode } : s));
+        try {
+            await apiPut(`/api/store/${storeId}`, { default_mode: mode });
+        } catch (err: any) {
+            alert(err?.detail || 'Failed to update API mode.');
+            // Revert
+            setStores(prev => prev.map(s => s.id === storeId ? { ...s, default_mode: mode === 'admin' ? 'storefront' : 'admin' } : s));
         }
     };
 

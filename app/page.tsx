@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, UserRound, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
@@ -25,11 +26,16 @@ export default function ShopifyConcierge() {
     address: '', city: '', state: '', zip: '', country: 'US',
   });
 
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   // ── Hooks ───────────────────────────────────────────────────────────────
   const { cart, setCart, handleCartAction } = useCart({ onViewCart: () => setViewMode('cart') });
 
   const auth = useAuth({
-    onMessage: (msg) => chat.appendMessage(msg),
+    onMessage: (msg) => {
+      chat.appendMessage(msg);
+      setIsChatOpen(true);
+    },
   });
 
   const products = useProducts(auth.appView === 'app');
@@ -48,8 +54,8 @@ export default function ShopifyConcierge() {
   // ── Loading state ───────────────────────────────────────────────────────
   if (auth.initialLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -112,75 +118,85 @@ export default function ShopifyConcierge() {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-50 overflow-hidden font-sans">
-      {/* ── Left: Chat Panel ────────────────────────────────────────── */}
-      <div className="relative w-full md:w-[400px] lg:w-[450px] flex flex-col bg-white border-r border-neutral-200 shadow-sm z-10">
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-neutral-100 bg-white">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center shadow-sm">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <h1 className="font-semibold text-neutral-900">AI Concierge</h1>
-            <p className="text-xs text-neutral-500">
-              {auth.storeConfig
-                ? auth.storeConfig.shopify_domain
-                : auth.customer
-                  ? `Hi, ${auth.customer.firstName}`
-                  : 'Powered by Gemini'}
-            </p>
-          </div>
-          <button
-            onClick={auth.openAuthModal}
-            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${auth.customer
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'bg-neutral-100 text-neutral-500 hover:bg-indigo-50 hover:text-indigo-600'
-              }`}
-            title={auth.customer ? `${auth.customer.firstName}` : 'Sign In'}
-          >
-            {auth.customer
-              ? auth.customer.firstName[0].toUpperCase()
-              : <UserRound className="w-4 h-4" />}
-          </button>
+    <div className="flex h-screen bg-white overflow-hidden font-sans relative">
+      {/* ── Chat Panel (Overlay Sidebar) ────────────────────────── */}
+      <AnimatePresence>
+        {isChatOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsChatOpen(false)}
+              className="absolute inset-0 bg-emerald-950/20 backdrop-blur-[2px] z-40 lg:hidden"
+            />
+            {/* Panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute left-0 top-0 bottom-0 w-[100%] md:w-[400px] lg:w-[450px] bg-white shadow-2xl z-50 flex flex-col border-r border-emerald-100"
+            >
+              <ChatPanel
+                messages={chat.messages}
+                input={chat.input}
+                setInput={chat.setInput}
+                handleSend={chat.handleSend}
+                onImageSelect={chat.handleImageSelect}
+                imagePreview={chat.previewImage}
+                setImagePreview={chat.handleRemoveImage}
+                isTyping={chat.isLoading}
+                isLive={chat.isLive}
+                onToggleLive={chat.toggleLive}
+                onClose={() => setIsChatOpen(false)}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AuthModal
+        customer={auth.customer}
+        show={auth.showAuthModal}
+        authTab={auth.authTab}
+        authForm={auth.authForm}
+        authLoading={auth.authLoading}
+        authError={auth.authError}
+        showPassword={auth.showPassword}
+        onClose={() => auth.setShowAuthModal(false)}
+        onSwitchTab={auth.switchTab}
+        onFormChange={(field, value) => auth.setAuthForm((f) => ({ ...f, [field]: value }))}
+        onLogin={auth.handleLogin}
+        onSignup={auth.handleSignup}
+        onLogout={auth.handleLogout}
+        onTogglePassword={() => auth.setShowPassword((p) => !p)}
+      />
+
+      {/* ── Floating AI Trigger ────────────────────────────────────────── */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-8 left-8 z-30 group flex items-center gap-3 p-2 pr-6 rounded-2xl bg-white border border-emerald-100 shadow-xl shadow-emerald-200/50 hover:border-emerald-200 active:scale-95 transition-all outline-none"
+      >
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20"
+          style={{ background: 'var(--gradient-1)' }}>
+          <Sparkles className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
         </div>
-
-        <AuthModal
-          customer={auth.customer}
-          show={auth.showAuthModal}
-          authTab={auth.authTab}
-          authForm={auth.authForm}
-          authLoading={auth.authLoading}
-          authError={auth.authError}
-          showPassword={auth.showPassword}
-          onClose={() => auth.setShowAuthModal(false)}
-          onSwitchTab={auth.switchTab}
-          onFormChange={(field, value) => auth.setAuthForm((f) => ({ ...f, [field]: value }))}
-          onLogin={auth.handleLogin}
-          onSignup={auth.handleSignup}
-          onLogout={auth.handleLogout}
-          onTogglePassword={() => auth.setShowPassword((p) => !p)}
-        />
-
-        <ChatPanel
-          messages={chat.messages}
-          input={chat.input}
-          isLoading={chat.isLoading}
-          previewImage={chat.previewImage}
-          messagesEndRef={chat.messagesEndRef}
-          onInputChange={chat.setInput}
-          onImageSelect={chat.handleImageSelect}
-          onRemoveImage={chat.handleRemoveImage}
-          onSend={chat.handleSend}
-        />
-      </div>
+        <div className="flex flex-col items-start translate-x-[-4px]">
+          <span className="text-xs font-bold text-emerald-950 uppercase tracking-widest text-left">AI Assistant</span>
+          <span className="text-[10px] text-emerald-500/80 font-medium">Click to chat</span>
+        </div>
+      </button>
 
       {/* ── Right: Storefront ───────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-neutral-50 h-full overflow-hidden relative">
+      <div className="flex-1 flex flex-col bg-emerald-50/10 h-full overflow-hidden relative">
         <StorefrontHeader
           viewMode={viewMode}
           cart={cart}
           products={products.products}
-          customer={null}
-          onLoginClick={() => { }}
+          customer={auth.customer}
+          onLoginClick={auth.openAuthModal}
           onToggleCart={toggleCart}
         />
 
@@ -198,7 +214,7 @@ export default function ShopifyConcierge() {
             onClearCollection={products.clearCollection}
             setProducts={products.setProducts}
             setPageInfo={products.setPageInfo}
-            setIsSearching={() => { }}
+            setIsSearching={products.setIsSearching}
             setSelectedCollection={products.setSelectedCollection}
           />
         )}

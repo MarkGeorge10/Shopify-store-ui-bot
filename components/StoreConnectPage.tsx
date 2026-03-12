@@ -44,22 +44,22 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
     };
 
     const inputCls =
-        'w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 outline-none text-sm text-white placeholder-white/30 transition-all';
+        'w-full px-4 py-3.5 rounded-xl bg-white border border-emerald-100 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 outline-none text-sm text-emerald-950 placeholder-emerald-300 transition-all';
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-center p-8">
+        <div className="min-h-screen bg-mint text-emerald-950 flex items-center justify-center p-8 relative overflow-hidden">
             {/* Background blobs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-20 -left-40 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-20 -left-40 w-80 h-80 bg-mint-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
 
             {/* Top-right user info */}
             <div className="absolute top-6 right-8 flex items-center gap-3 z-10">
-                <span className="text-sm text-white/50">{userEmail}</span>
+                <span className="text-sm text-emerald-600/70 font-medium">{userEmail}</span>
                 <button
                     onClick={onLogout}
-                    className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/50 hover:text-white"
+                    className="p-2 rounded-xl hover:bg-emerald-50 transition-colors text-emerald-400 hover:text-emerald-600"
                     title="Log out"
                 >
                     <LogOut className="w-4 h-4" />
@@ -67,26 +67,27 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
             </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6 }}
                 className="relative w-full max-w-lg"
             >
                 {/* Header */}
                 <div className="text-center mb-10">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-500/30">
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-200"
+                        style={{ background: 'var(--gradient-1)' }}>
                         <Store className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-extrabold tracking-tight mb-3">Connect Your Store</h1>
-                    <p className="text-white/50 text-sm leading-relaxed max-w-sm mx-auto">
+                    <h1 className="text-3xl font-extrabold tracking-tight mb-3 text-emerald-950">Connect Your Store</h1>
+                    <p className="text-emerald-700/60 text-sm leading-relaxed max-w-sm mx-auto font-medium">
                         Enter your Shopify store credentials to enable AI-powered shopping experiences.
                     </p>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleConnect} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 space-y-5">
+                <form onSubmit={handleConnect} className="bg-white/80 backdrop-blur-md border border-emerald-100 rounded-3xl p-8 space-y-5 shadow-2xl shadow-emerald-200/50">
                     <div>
-                        <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
                             Store Domain
                         </label>
                         <input
@@ -99,7 +100,7 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
                             Storefront Access Token
                         </label>
                         <input
@@ -109,14 +110,14 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
                             placeholder="shpat_xxxxxxxxxxxxxxxx"
                             className={inputCls}
                         />
-                        <p className="text-xs text-white/30 mt-1.5">
-                            Found in Shopify Admin → Settings → Apps → Develop apps
+                        <p className="text-[11px] text-emerald-400 mt-2 font-medium">
+                            Found in Admin → Settings → Apps → Develop apps
                         </p>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-                            Admin Access Token <span className="text-white/30">(optional)</span>
+                        <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">
+                            Admin Access Token <span className="text-emerald-300">(optional)</span>
                         </label>
                         <input
                             type="password"
@@ -125,13 +126,13 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
                             placeholder="shpat_xxxxxxxxxxxxxxxx"
                             className={inputCls}
                         />
-                        <p className="text-xs text-white/30 mt-1.5">
+                        <p className="text-[11px] text-emerald-400 mt-2 font-medium leading-normal">
                             Required for order tracking and inventory. Falls back to Storefront token if empty.
                         </p>
                     </div>
 
                     {error && (
-                        <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+                        <div className="flex items-start gap-2 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium animate-shake">
                             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                             {error}
                         </div>
@@ -140,7 +141,7 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
                     <button
                         type="submit"
                         disabled={isConnecting}
-                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 active:scale-[0.98]"
+                        className="btn-primary w-full py-4 text-white font-extrabold text-base rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] shadow-lg shadow-emerald-200"
                     >
                         {isConnecting ? (
                             <>
@@ -157,9 +158,9 @@ export default function StoreConnectPage({ onConnected, onLogout, userEmail }: S
                 </form>
 
                 {/* Footer hint */}
-                <p className="text-center text-xs text-white/30 mt-6 flex items-center justify-center gap-1.5">
-                    <Sparkles className="w-3 h-3" />
-                    Your tokens are encrypted at rest and never logged.
+                <p className="text-center text-xs text-emerald-400 mt-8 font-medium flex items-center justify-center gap-1.5 opacity-70">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Your tokens are encrypted and stored securely.
                 </p>
             </motion.div>
         </div>

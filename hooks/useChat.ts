@@ -57,8 +57,11 @@ export function useChat({
     const [isLoading, setIsLoading] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isLive, setIsLive] = useState(false);
     const sessionIdRef = useRef<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const toggleLive = () => setIsLive(!isLive);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -113,7 +116,6 @@ export function useChat({
     const appendMessage = (msg: Message) =>
         setMessages((prev) => [...prev, msg]);
 
-    // ── Handle structured actions from backend ────────────────────────────
     const handleStructuredActions = (actions: ChatSendResponse['structured_actions'], toolCalls: ToolCallOut[]) => {
         for (const tc of toolCalls) {
             if (tc.name === 'search_products' && tc.result?.products) {
@@ -207,13 +209,11 @@ export function useChat({
         }
     };
 
-    // ── Handle send ───────────────────────────────────────────────────────
     const handleSend = async (e?: React.FormEvent, overrideText?: string) => {
         e?.preventDefault();
         const userText = (overrideText || input).trim();
         if (!userText && !imageFile) return;
 
-        // Intercept silent UI cart directives
         if (userText.startsWith('{"action":"cart.')) return;
 
         const currentPreview = previewImage;
@@ -286,5 +286,7 @@ export function useChat({
         handleRemoveImage,
         handleSend,
         handleStructuredActions,
+        isLive,
+        toggleLive,
     };
 }

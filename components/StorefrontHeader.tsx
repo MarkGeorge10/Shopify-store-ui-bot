@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingBag, ShoppingCart, Sparkles, UserRound } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Sparkles, ArrowLeft } from 'lucide-react';
 import type { Cart, ViewMode, Customer } from '@/types';
 
 interface StorefrontHeaderProps {
@@ -13,12 +13,7 @@ interface StorefrontHeaderProps {
 }
 
 export default function StorefrontHeader({
-    viewMode,
-    cart,
-    products,
-    customer,
-    onToggleCart,
-    onLoginClick,
+    viewMode, cart, products, customer, onToggleCart, onLoginClick,
 }: StorefrontHeaderProps) {
     const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) ?? 0;
 
@@ -26,62 +21,73 @@ export default function StorefrontHeader({
         viewMode === 'shop'
             ? `${products.length} Products`
             : viewMode === 'checkout'
-                ? 'Checkout'
+                ? 'Secure Checkout'
                 : `${cart?.items.length ?? 0} Items`;
 
     const title =
         viewMode === 'shop' ? 'Storefront' : viewMode === 'cart' ? 'Your Bag' : 'Checkout';
 
     return (
-        <div className="px-8 py-6 border-b border-neutral-200/60 bg-white/50 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-neutral-800 flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-indigo-600" />
-                {title}
-            </h2>
-            <div className="flex items-center gap-4">
-                {/* User Auth Button */}
-                <button
-                    onClick={onLoginClick}
-                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-neutral-100 rounded-xl transition-all font-medium text-sm text-neutral-600"
-                >
-                    {customer ? (
-                        <>
-                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
-                                {customer.firstName[0]}{customer.lastName[0]}
-                            </div>
-                            <span className="hidden sm:inline">{customer.firstName}</span>
-                        </>
-                    ) : (
-                        <>
-                            <UserRound className="w-5 h-5" />
-                            <span className="hidden sm:inline">Sign In</span>
-                        </>
-                    )}
-                </button>
+        <div
+            className="px-7 py-5 sticky top-0 z-10 flex justify-between items-center glass-light"
+            style={{
+                borderBottom: '1px solid rgba(16,185,129,0.1)',
+                background: 'rgba(255,255,255,0.92)',
+                backdropFilter: 'blur(20px)',
+            }}
+        >
+            {/* Left: title */}
+            <div className="flex items-center gap-3">
+                {viewMode !== 'shop' && (
+                    <button
+                        onClick={onToggleCart}
+                        className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors hover:bg-emerald-50 text-emerald-500"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </button>
+                )}
+                <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                        style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(52,211,153,0.15))' }}>
+                        <ShoppingBag className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                    </div>
+                    <div>
+                        <h2 className="text-base font-bold" style={{ color: 'var(--text-1)' }}>{title}</h2>
+                        <p className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>{label}</p>
+                    </div>
+                </div>
+            </div>
 
-                <div className="w-px h-6 bg-neutral-200"></div>
+            {/* Right: actions */}
+            <div className="flex items-center gap-3">
+                {/* Powered by badge */}
+                <div className="badge-gemini hidden sm:flex">
+                    <Sparkles className="w-2.5 h-2.5" /> Gemini AI
+                </div>
 
-                {/* Cart Toggle */}
+                <div className="w-px h-5 rounded-full" style={{ background: 'rgba(16,185,129,0.15)' }} />
+
+                {/* Cart toggle */}
                 <button
                     onClick={onToggleCart}
-                    className="relative p-2 hover:bg-neutral-100 rounded-xl transition-all group"
+                    className="relative flex items-center gap-2 px-3 py-2 rounded-2xl font-semibold text-sm transition-all hover:scale-105"
+                    style={{
+                        background: cartCount > 0 ? 'var(--gradient-1)' : 'rgba(16,185,129,0.08)',
+                        color: cartCount > 0 ? 'white' : 'var(--primary)',
+                        boxShadow: cartCount > 0 ? '0 4px 16px rgba(16,185,129,0.35)' : 'none',
+                    }}
                 >
                     {viewMode === 'shop' ? (
                         <>
-                            <ShoppingCart className="w-6 h-6 text-neutral-600 group-hover:text-indigo-600" />
+                            <ShoppingCart className="w-4 h-4" />
                             {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
-                                    {cartCount}
-                                </span>
+                                <span className="font-bold text-xs">{cartCount}</span>
                             )}
                         </>
                     ) : (
-                        <Sparkles className="w-6 h-6 text-indigo-600" />
+                        <ShoppingBag className="w-4 h-4" />
                     )}
                 </button>
-                <div className="text-sm text-neutral-500 font-medium bg-white px-3 py-1 rounded-full shadow-sm border border-neutral-100">
-                    {label}
-                </div>
             </div>
         </div>
     );

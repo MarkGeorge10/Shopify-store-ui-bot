@@ -186,6 +186,7 @@ export function useProducts(enabled: boolean = false) {
         selectedCollection,
         setSelectedCollection,
         isSearching,
+        setIsSearching,
         currentSearchQuery,
         setCurrentSearchQuery,
         searchProducts,
