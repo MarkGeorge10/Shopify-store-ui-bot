@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Customer, AuthTab, AuthForm } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 const EMPTY_FORM: AuthForm = {
     email: '',

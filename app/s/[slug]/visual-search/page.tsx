@@ -7,7 +7,7 @@ import Image from 'next/image';
 import useShopperAuth from '@/hooks/useShopperAuth';
 import type { Product } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 // ── Product mapper ──────────────────────────────────────────────────────────
 

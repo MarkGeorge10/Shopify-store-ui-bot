@@ -5,7 +5,7 @@
  * and typed request helpers.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const TOKEN_KEY = 'concierge_jwt';
 
 // ── Token Management ──────────────────────────────────────────────────────────

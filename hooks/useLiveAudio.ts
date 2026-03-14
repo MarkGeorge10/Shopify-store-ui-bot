@@ -70,7 +70,7 @@ export function useLiveAudio({ slug, shopperEmail, onToolCall, onAIText, onTurnC
             audioContextRef.current = audioContext;
 
             // 2. Open WebSocket to backend relay
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
             const protocol = apiUrl.startsWith('https') ? 'wss:' : 'ws:';
             const host = apiUrl.replace(/^https?:\/\//, '');
             const emailParam = shopperEmail ? `shopper_email=${encodeURIComponent(shopperEmail)}` : '';

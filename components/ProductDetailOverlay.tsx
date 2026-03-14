@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { apiGet } from '@/lib/api';
 import type { Product } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 export default function ProductDetailOverlay({ product, slug, onClose, onAddToCart, onAskAI }: ProductDetailOverlayProps) {
     const [productDetails, setProductDetails] = useState<any>(null);

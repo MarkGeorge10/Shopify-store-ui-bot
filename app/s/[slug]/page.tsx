@@ -14,7 +14,7 @@ import useShopperAuth from '@/hooks/useShopperAuth';
 import { useLiveAudio } from '@/hooks/useLiveAudio';
 import type { Product, PageInfo, Cart, ViewMode, CheckoutForm, Message, Variant, VariantOption } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 // ── Simple fetch helpers (no auth) ──────────────────────────────────────────
 
