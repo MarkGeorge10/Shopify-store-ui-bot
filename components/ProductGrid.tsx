@@ -64,11 +64,11 @@ export default function ProductGrid({
                         style={selectedCollection === null ? {
                             background: 'var(--gradient-1)',
                             color: 'white',
-                            boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
+                            boxShadow: '0 4px 16px rgba(6,95,70,0.35)',
                         } : {
                             background: 'white',
                             color: 'var(--text-2)',
-                            border: '1.5px solid rgba(16,185,129,0.15)',
+                            border: '1.5px solid rgba(6,95,70,0.15)',
                         }}
                     >
                         All Products
@@ -81,11 +81,11 @@ export default function ProductGrid({
                             style={selectedCollection === coll.id ? {
                                 background: 'var(--gradient-1)',
                                 color: 'white',
-                                boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
+                                boxShadow: '0 4px 16px rgba(6,95,70,0.35)',
                             } : {
                                 background: 'white',
                                 color: 'var(--text-2)',
-                                border: '1.5px solid rgba(16,185,129,0.15)',
+                                border: '1.5px solid rgba(6,95,70,0.15)',
                             }}
                         >
                             {coll.title}
@@ -98,7 +98,7 @@ export default function ProductGrid({
             {isSearching ? (
                 <div className="h-80 flex flex-col items-center justify-center gap-4" style={{ color: 'var(--text-3)' }}>
                     <div className="w-14 h-14 rounded-3xl flex items-center justify-center"
-                        style={{ background: 'rgba(16,185,129,0.1)' }}>
+                        style={{ background: 'rgba(6,95,70,0.1)' }}>
                         <Loader2 className="w-7 h-7 animate-spin" style={{ color: 'var(--primary)' }} />
                     </div>
                     <p className="font-medium text-sm">Searching catalog...</p>
@@ -122,8 +122,8 @@ export default function ProductGrid({
             ) : (
                 <div className="h-80 flex flex-col items-center justify-center gap-5">
                     <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
-                        style={{ background: 'rgba(16,185,129,0.08)' }}>
-                        <ShoppingBag className="w-10 h-10" style={{ color: 'rgba(16,185,129,0.3)' }} />
+                        style={{ background: 'rgba(6,95,70,0.08)' }}>
+                        <ShoppingBag className="w-10 h-10" style={{ color: 'rgba(6,95,70,0.3)' }} />
                     </div>
                     <div className="text-center">
                         <p className="font-semibold mb-1" style={{ color: 'var(--text-2)' }}>No products found</p>
@@ -142,8 +142,8 @@ export default function ProductGrid({
                         style={{
                             background: 'white',
                             color: 'var(--primary)',
-                            border: '1.5px solid rgba(16,185,129,0.25)',
-                            boxShadow: '0 4px 20px rgba(16,185,129,0.1)',
+                            border: '1.5px solid rgba(6,95,70,0.25)',
+                            boxShadow: '0 4px 20px rgba(6,95,70,0.1)',
                         }}
                     >
                         {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -200,8 +200,8 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.04, type: 'spring', stiffness: 300, damping: 25 }}
-            className="bg-white rounded-[2rem] overflow-hidden group cursor-pointer flex flex-col transition-all duration-500 hover:shadow-[0_20px_50px_rgba(16,185,129,0.12)]"
-            style={{ border: '1px solid rgba(16,185,129,0.08)' }}
+            className="bg-white rounded-[2rem] overflow-hidden group cursor-pointer flex flex-col transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_60px_rgba(6,95,70,0.15)]"
+            style={{ border: '1px solid rgba(6,95,70,0.08)' }}
         >
             {/* Image Section */}
             <div className="aspect-[4/5] relative overflow-hidden bg-emerald-50/30" onClick={onSelect}>
@@ -222,7 +222,7 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
                     {isNew && (
-                        <div className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-emerald-500/20">
+                        <div className="px-3 py-1 rounded-full bg-emerald-700 text-white text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-emerald-700/20">
                             New
                         </div>
                     )}
@@ -252,8 +252,8 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
                         {product.title}
                     </h3>
                     <div className="flex items-center gap-1">
-                        <Tag className="w-3 h-3 text-emerald-500/50" />
-                        <span className="text-[10px] font-bold text-emerald-600/60 uppercase tracking-widest">Premium Selection</span>
+                        <Tag className="w-3 h-3 text-emerald-700/50" />
+                        <span className="text-[10px] font-bold text-emerald-800/60 uppercase tracking-widest">Premium Selection</span>
                     </div>
                 </div>
 
@@ -277,7 +277,7 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
                                                     key={val}
                                                     title={val}
                                                     onClick={(e) => { e.stopPropagation(); setSelectedOptions((prev) => ({ ...prev, [optName]: val })); }}
-                                                    className={`w-5 h-5 rounded-full border-2 transition-all p-0.5 ${isSelected ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-transparent'}`}
+                                                    className={`w-5 h-5 rounded-full border-2 transition-all p-0.5 ${isSelected ? 'border-emerald-700 ring-2 ring-emerald-700/10' : 'border-transparent'}`}
                                                 >
                                                     <div className="w-full h-full rounded-full shadow-inner" style={{ backgroundColor: hex || '#ccc' }} />
                                                 </button>
@@ -299,8 +299,8 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
                                                 key={val}
                                                 onClick={(e) => { e.stopPropagation(); setSelectedOptions((prev) => ({ ...prev, [optName]: val })); }}
                                                 className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all uppercase tracking-tighter ${isSelected
-                                                    ? 'bg-emerald-600 text-white border-transparent'
-                                                    : 'bg-emerald-50/50 text-emerald-950 border-emerald-100 hover:border-emerald-300'}`}
+                                                    ? 'bg-emerald-800 text-white border-transparent'
+                                                    : 'bg-emerald-50/50 text-black border-emerald-100 hover:border-emerald-300'}`}
                                             >
                                                 {val}
                                             </button>
@@ -315,8 +315,8 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
                 {/* Footer: Price + Add */}
                 <div className="flex items-center justify-between mt-auto pt-2">
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-emerald-600/60 uppercase tracking-widest">{displayCurrency}</span>
-                        <span className="text-xl font-black text-emerald-950" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                        <span className="text-[10px] font-bold text-emerald-800/60 uppercase tracking-widest">{displayCurrency}</span>
+                        <span className="text-xl font-black text-black" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                             {parseFloat(displayPrice).toFixed(2)}
                         </span>
                     </div>
@@ -324,8 +324,8 @@ function ProductCard({ product, idx, onSelect, onAddToCart }: {
                         onClick={handleAddToCart}
                         disabled={selectedVariant ? !selectedVariant.available : false}
                         className={`group relative h-12 px-6 rounded-2xl font-bold text-sm tracking-tight transition-all duration-300 flex items-center gap-2 overflow-hidden ${addedFeedback
-                            ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                            : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-100'}`}
+                            ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-200'
+                            : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-800 hover:text-white hover:shadow-lg hover:shadow-emerald-100'}`}
                     >
                         <AnimatePresence mode="wait">
                             {addedFeedback ? (

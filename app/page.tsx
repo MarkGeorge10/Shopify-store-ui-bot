@@ -181,7 +181,7 @@ export default function ShopifyConcierge() {
       >
         <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20"
           style={{ background: 'var(--gradient-1)' }}>
-          <Sparkles className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
+          <Sparkles className="w-6 h-6 text-black group-hover:rotate-12 transition-transform" />
         </div>
         <div className="flex flex-col items-start translate-x-[-4px]">
           <span className="text-xs font-bold text-emerald-950 uppercase tracking-widest text-left">AI Assistant</span>

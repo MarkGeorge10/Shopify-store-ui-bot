@@ -181,7 +181,7 @@ export default function ChatPanel({
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                         placeholder="Ask anything..."
-                        className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-emerald-950 placeholder:text-emerald-300"
+                        className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-emerald-950 placeholder:text-emerald-700/50"
                     />
                     <button
                         onClick={handleSend}

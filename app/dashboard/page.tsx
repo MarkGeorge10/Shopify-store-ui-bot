@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
     Store, Plus, Trash2, Pencil, ExternalLink, Copy, Check,
     Loader2, LogOut, Sparkles, Globe, ArrowRight, AlertCircle, X,
-    Database, RefreshCw, ToggleLeft, ToggleRight, BarChart2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Clock
+    Database, RefreshCw, ToggleLeft, ToggleRight, BarChart2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Clock, Bot
 } from 'lucide-react';
 import { apiGet, apiPost, apiDelete, apiPut, isAuthenticated, clearToken } from '@/lib/api';
 import { useRouter } from 'next/navigation';
@@ -256,349 +256,297 @@ export default function DashboardPage() {
     };
 
     const inputCls =
-        'w-full px-5 py-4 rounded-2xl bg-emerald-50/30 border border-emerald-100 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 outline-none text-sm text-emerald-950 placeholder-emerald-300 transition-all font-medium';
+        'w-full px-5 py-4 rounded-xl bg-zinc-900/40 border border-zinc-800 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 outline-none text-sm text-zinc-100 placeholder-zinc-500 transition-all font-medium backdrop-blur-sm';
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-white text-emerald-950 font-sans">
-            {/* Background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-50 rounded-full blur-3xl opacity-60" />
-                <div className="absolute bottom-20 -left-40 w-80 h-80 bg-emerald-50/50 rounded-full blur-3xl opacity-40" />
+        <div className="min-h-screen bg-[#09090b] text-zinc-400 font-sans selection:bg-emerald-500/20">
+            {/* Ambient Background Glows */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute -top-[10%] -right-[5%] w-[40%] h-[40%] bg-emerald-500/5 rounded-full blur-[120px]" />
+                <div className="absolute top-[20%] -left-[10%] w-[30%] h-[30%] bg-emerald-500/2 rounded-full blur-[100px]" />
             </div>
 
-            {/* Nav */}
-            <nav className="relative z-10 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200"
-                         style={{ background: 'var(--gradient-1)' }}>
-                        <Sparkles className="w-5 h-5 text-white" />
+            {/* Navbar */}
+            <nav className="sticky top-0 z-50 w-full border-b border-zinc-800/50 bg-[#09090b]/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <Sparkles className="w-5 h-5 text-zinc-950" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-lg font-bold tracking-tight text-zinc-100">AI Concierge</span>
+                            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-none">Merchant Portal</span>
+                        </div>
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-emerald-950">AI Concierge</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-emerald-600/60 font-medium">{user?.email}</span>
-                    <button
-                        onClick={handleLogout}
-                        className="p-2 rounded-xl hover:bg-emerald-50 transition-colors text-emerald-400 hover:text-emerald-600"
-                        title="Log out"
-                    >
-                        <LogOut className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-6">
+                        <div className="hidden md:flex flex-col items-end">
+                            <span className="text-sm text-zinc-200 font-semibold">{user?.email}</span>
+                            <span className="text-[10px] text-emerald-500 font-bold uppercase">Pro Account</span>
+                        </div>
+                        <div className="w-px h-6 bg-zinc-800" />
+                        <button
+                            onClick={handleLogout}
+                            className="p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800 text-zinc-500 hover:text-zinc-100 hover:border-zinc-700 transition-all group"
+                            title="Log out"
+                        >
+                            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                        </button>
+                    </div>
                 </div>
             </nav>
 
-            {/* Content */}
-            <main className="relative z-10 max-w-5xl mx-auto px-8 pb-20">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-emerald-950">Your Stores</h1>
-                        <p className="text-emerald-700/60 mt-1 text-sm font-medium">
-                            Manage your Shopify stores and share their AI chatbot links.
+            {/* Main Content Area */}
+            <main className="relative z-10 max-w-7xl mx-auto px-6 py-12">
+                {/* Dashboard Header */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                    <div className="space-y-2">
+                        <h1 className="text-4xl font-extrabold tracking-tight text-zinc-50">Your Stores</h1>
+                        <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+                            Manage your Shopify integrations, monitor AI performance, and export storefront links.
                         </p>
                     </div>
                     <button
                         onClick={() => setShowAddForm(true)}
-                        className="btn-primary px-6 py-3 text-sm flex items-center gap-2 shadow-lg shadow-emerald-200"
+                        className="flex items-center gap-2.5 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/10 active:scale-95 shrink-0"
                     >
-                        <Plus className="w-4 h-4" />
-                        Add Store
+                        <Plus className="w-5 h-5" />
+                        Add New Store
                     </button>
                 </div>
 
                 {/* Add Store Form Modal */}
                 {showAddForm && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 bg-white/80 backdrop-blur-md border border-emerald-100 rounded-3xl p-8 shadow-xl shadow-emerald-100/50"
+                        className="mb-12 bg-zinc-900/40 border border-zinc-800 rounded-3xl p-10 backdrop-blur-md shadow-2xl relative overflow-hidden"
                     >
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-emerald-950">Connect New Store</h2>
-                            <button onClick={() => setShowAddForm(false)} className="text-emerald-300 hover:text-emerald-500 transition-colors">
+                        <div className="absolute top-0 right-0 p-4">
+                            <button onClick={() => setShowAddForm(false)} className="text-zinc-500 hover:text-zinc-100 transition-colors p-2 hover:bg-zinc-800 rounded-lg">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <form onSubmit={handleAddStore} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2 font-bold text-emerald-600">Store Name</label>
-                                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="My Store" className={inputCls} />
+
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold text-zinc-50">Connect New Store</h2>
+                            <p className="text-zinc-500 text-sm mt-1">Provide your Shopify credentials to initialize the AI concierge.</p>
+                        </div>
+
+                        <form onSubmit={handleAddStore} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">Display Name</label>
+                                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Summer Collection 2025" className={inputCls} />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Shopify Domain</label>
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">Shopify Domain</label>
                                 <input value={formDomain} onChange={(e) => setFormDomain(e.target.value)} placeholder="your-store.myshopify.com" className={inputCls} />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Storefront Token</label>
-                                <input type="password" value={formStorefrontToken} onChange={(e) => setFormStorefrontToken(e.target.value)} placeholder="shpat_xxx" className={inputCls} />
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">Storefront Access Token</label>
+                                <input type="password" value={formStorefrontToken} onChange={(e) => setFormStorefrontToken(e.target.value)} placeholder="shpat_..." className={inputCls} />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Admin Token <span className="text-emerald-300">(optional)</span></label>
-                                <input type="password" value={formAdminToken} onChange={(e) => setFormAdminToken(e.target.value)} placeholder="shpat_xxx" className={inputCls} />
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1 flex items-center justify-between">
+                                    Admin API Token
+                                    <span className="text-[10px] text-zinc-600 font-normal normal-case italic">Required for Re-Indexing</span>
+                                </label>
+                                <input type="password" value={formAdminToken} onChange={(e) => setFormAdminToken(e.target.value)} placeholder="shpat_..." className={inputCls} />
                             </div>
+                            
                             {formError && (
-                                <div className="md:col-span-2 flex items-center gap-2 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium">
+                                <div className="md:col-span-2 flex items-center gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
                                     <AlertCircle className="w-5 h-5 shrink-0" />
                                     {formError}
                                 </div>
                             )}
-                            <div className="md:col-span-2 pt-2">
+
+                            <div className="md:col-span-2 pt-4 flex justify-end">
                                 <button
                                     type="submit"
                                     disabled={formLoading}
-                                    className="btn-primary px-8 py-4 text-base flex items-center gap-2 shadow-lg shadow-emerald-200"
+                                    className="px-10 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-3 active:scale-95 disabled:opacity-50"
                                 >
                                     {formLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                                    Connect Store
+                                    Establish Connection
                                 </button>
                             </div>
                         </form>
                     </motion.div>
                 )}
 
-                {/* Stores Grid */}
+                {/* Stores Grid Redesign */}
                 {stores.length === 0 ? (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center py-24"
-                    >
-                        <div className="w-24 h-24 rounded-3xl bg-emerald-50 flex items-center justify-center mx-auto mb-8 shadow-inner">
-                            <Store className="w-12 h-12 text-emerald-200" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-32 border border-dashed border-zinc-800 rounded-[2.5rem] bg-zinc-950/20">
+                        <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center mx-auto mb-8 shadow-inner border border-zinc-800">
+                            <Loader2 className="w-10 h-10 text-zinc-700" />
                         </div>
-                        <h2 className="text-2xl font-bold text-emerald-950 mb-3">No stores connected</h2>
-                        <p className="text-emerald-700/50 text-base mb-10 max-w-sm mx-auto font-medium">Connect your first Shopify store to start using AI-powered shopping concierge.</p>
-                        <button
-                            onClick={() => setShowAddForm(true)}
-                            className="btn-primary px-8 py-4 text-base flex items-center gap-2 shadow-lg shadow-emerald-200 mx-auto"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Add Your First Store
+                        <h2 className="text-2xl font-bold text-zinc-50 mb-3">No Stores Connected</h2>
+                        <p className="text-zinc-500 text-lg mb-10 max-w-sm mx-auto font-medium">Start by adding your first Shopify store to activate the AI concierge features.</p>
+                        <button onClick={() => setShowAddForm(true)} className="px-8 py-4 bg-zinc-100 hover:bg-white text-zinc-950 font-bold rounded-xl transition-all shadow-xl active:scale-95 flex items-center gap-2 mx-auto">
+                            <Plus className="w-6 h-6" /> Initialize First Store
                         </button>
                     </motion.div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {stores.map((store, idx) => (
                             <motion.div
                                 key={store.id}
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="bg-white/80 backdrop-blur-md border border-emerald-100 rounded-3xl p-8 shadow-lg shadow-emerald-100/20 hover:shadow-xl hover:shadow-emerald-100/40 hover:border-emerald-200 transition-all group"
+                                className="group relative bg-[#18181b]/50 border border-[#27272a] hover:border-emerald-500/30 rounded-[2rem] p-8 shadow-premium transition-all duration-300 flex flex-col backdrop-blur-sm"
                             >
-                                {/* Header */}
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shadow-inner">
-                                            <Store className="w-6 h-6 text-emerald-500" />
+                                {/* Store Identity Section */}
+                                <div className="flex items-start justify-between mb-8">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-inner group-hover:bg-emerald-500/10 group-hover:border-emerald-500/20 transition-colors">
+                                            <Store className="w-7 h-7 text-emerald-500" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-emerald-950">{store.name}</h3>
-                                            <p className="text-sm text-emerald-400 font-medium">{store.shopify_domain}</p>
+                                            <h3 className="text-xl font-bold text-zinc-50 group-hover:text-emerald-400 transition-colors">{store.name}</h3>
+                                            <p className="text-sm text-zinc-500 font-medium tracking-tight mt-1">{store.shopify_domain}</p>
                                         </div>
                                     </div>
-                                    <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-tight uppercase ${store.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-                                        {store.is_active ? 'Active' : 'Inactive'}
+                                    <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase flex items-center gap-2 ${store.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                                        {store.is_active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                                        {store.is_active ? 'Live Coverage' : 'Service Paused'}
                                     </div>
                                 </div>
 
-                                {/* Public link */}
-                                <div className="bg-emerald-50/50 rounded-2xl p-4 flex items-center justify-between mb-6 border border-emerald-100/50 shadow-inner">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <Globe className="w-4 h-4 text-emerald-400 shrink-0" />
-                                        <code className="text-xs font-bold text-emerald-600 truncate">/s/{store.slug}</code>
+                                {/* URL & Sharing */}
+                                <div className="bg-zinc-950/80 rounded-2xl p-4 flex items-center justify-between mb-8 border border-zinc-800/50">
+                                    <div className="flex items-center gap-3 min-w-0 px-1">
+                                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
+                                            <Globe className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[9px] text-zinc-600 font-black uppercase tracking-tighter leading-none mb-1">Public Concierge ID</span>
+                                            <code className="text-xs font-bold text-zinc-300 truncate">/s/{store.slug}</code>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
                                         <button
                                             onClick={() => handleCopyLink(store.slug)}
-                                            className="p-2 rounded-xl hover:bg-white transition-all text-emerald-400 hover:text-emerald-700 shadow-sm"
-                                            title="Copy public link"
+                                            className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-zinc-100 hover:border-zinc-700 transition-all"
+                                            title="Copy link"
                                         >
                                             {copiedSlug === store.slug ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                                         </button>
                                         <a
                                             href={`/s/${store.slug}`}
                                             target="_blank"
-                                            className="p-2 rounded-xl hover:bg-white transition-all text-emerald-400 hover:text-emerald-700 shadow-sm"
-                                            title="Open storefront"
+                                            className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-zinc-100 hover:border-zinc-700 transition-all"
+                                            title="Preview link"
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                         </a>
                                     </div>
                                 </div>
 
-                                {/* AI Enhanced Search Options */}
-                                <div className="bg-emerald-50/30 border border-emerald-100 rounded-2xl p-5 mb-6 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Sparkles className="w-5 h-5 text-emerald-500" />
-                                            <span className="text-sm font-bold text-emerald-950">Enhanced AI Search (RAG)</span>
+                                {/* Engine Status & Controls */}
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-2xl p-4 flex flex-col justify-between h-28">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+                                            <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> AI Engine
                                         </div>
-                                        <button
-                                            onClick={() => handleToggleRAG(store.id, store.enhanced_search_enabled)}
-                                            className={`transition-colors focus:outline-none ${store.enhanced_search_enabled ? 'text-emerald-500' : 'text-emerald-200 hover:text-emerald-300'}`}
-                                        >
-                                            {store.enhanced_search_enabled ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
-                                        </button>
+                                        <div className="flex items-center justify-between mt-auto">
+                                            <span className="text-sm font-bold text-zinc-300">Enhanced Search</span>
+                                            <button
+                                                onClick={() => handleToggleRAG(store.id, store.enhanced_search_enabled)}
+                                                className={`transition-all ${store.enhanced_search_enabled ? 'text-emerald-500' : 'text-zinc-700 hover:text-zinc-600'}`}
+                                            >
+                                                {store.enhanced_search_enabled ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                                            </button>
+                                        </div>
                                     </div>
-
-                                    {store.enhanced_search_enabled && (
-                                        <div className="flex items-center justify-between pt-4 border-t border-emerald-100">
-                                            <div className="flex items-center gap-2 text-xs">
-                                                <Database className="w-4 h-4 text-emerald-400" />
-                                                <span className="text-emerald-700/60 font-medium">Status:</span>
-                                                <span className={`px-2 py-0.5 rounded-lg font-bold uppercase tracking-tighter ${store.rag_index_status === 'ready' ? 'bg-emerald-100 text-emerald-700' :
-                                                    store.rag_index_status === 'building' ? 'bg-amber-100 text-amber-700 animate-pulse' :
-                                                        store.rag_index_status === 'error' ? 'bg-red-100 text-red-700' :
-                                                            'bg-emerald-50 text-emerald-400'
-                                                    }`}>
-                                                    {store.rag_index_status || 'idle'}
-                                                </span>
-                                            </div>
+                                    <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-2xl p-4 flex flex-col justify-between h-28">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+                                            <Database className="w-3.5 h-3.5 text-zinc-500" /> RAG Index
+                                        </div>
+                                        <div className="flex items-center justify-between mt-auto">
+                                            <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase ${
+                                                store.rag_index_status === 'ready' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                store.rag_index_status === 'building' ? 'bg-amber-500/10 text-amber-500 animate-pulse' :
+                                                'bg-zinc-800 text-zinc-500'
+                                            }`}>
+                                                {store.rag_index_status || 'idle'}
+                                            </span>
                                             <button
                                                 onClick={() => handleReindex(store.id)}
                                                 disabled={store.rag_index_status === 'building'}
-                                                className="px-4 py-2 bg-white hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-bold transition-all border border-emerald-100 text-emerald-600 shadow-sm flex items-center gap-2"
+                                                className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-400 hover:text-white transition-colors border border-zinc-700/50"
                                             >
-                                                <RefreshCw className={`w-3.5 h-3.5 ${store.rag_index_status === 'building' ? 'animate-spin' : ''}`} />
-                                                Re-Index
+                                                <RefreshCw className={`w-4 h-4 ${store.rag_index_status === 'building' ? 'animate-spin' : ''}`} />
                                             </button>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
 
-                                {/* RAG Analytics Panel */}
-                                <div className="mb-6">
+                                {/* Analytics Toggle Area */}
+                                <div className="mb-8">
                                     <button
                                         onClick={() => handleOpenAnalytics(store.id)}
-                                        className="w-full flex items-center justify-between px-5 py-3.5 bg-emerald-50 hover:bg-emerald-100/60 rounded-2xl text-sm font-bold transition-all group/analytics border border-emerald-100/50"
+                                        className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl font-bold transition-all border ${
+                                            openAnalytics === store.id 
+                                            ? 'bg-zinc-900 text-zinc-100 border-zinc-700' 
+                                            : 'bg-zinc-900/20 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                                        }`}
                                     >
-                                        <span className="flex items-center gap-2 text-emerald-700">
-                                            <BarChart2 className="w-5 h-5 text-emerald-500" />
-                                            RAG Analytics (7d)
+                                        <span className="flex items-center gap-3">
+                                            <BarChart2 className={`w-5 h-5 ${openAnalytics === store.id ? 'text-emerald-500' : 'text-zinc-600'}`} />
+                                            Analytics Performance (7d)
                                         </span>
-                                        {metricsLoading === store.id
-                                            ? <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
-                                            : openAnalytics === store.id ? <ChevronUp className="w-4 h-4 text-emerald-400" /> : <ChevronDown className="w-4 h-4 text-emerald-400" />
-                                        }
+                                        {metricsLoading === store.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronDown className={`w-4 h-4 transition-transform ${openAnalytics === store.id ? 'rotate-180' : ''}`} />}
                                     </button>
 
                                     <AnimatePresence>
                                         {openAnalytics === store.id && metricsMap[store.id] && (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                exit={{ opacity: 0, height: 0 }}
-                                                className="overflow-hidden"
-                                            >
-                                                <div className="mt-3 bg-white border border-emerald-100 rounded-2xl p-5 space-y-5 shadow-inner">
-                                                    {/* Metrics Grid */}
-                                                    {(() => {
-                                                        const m = metricsMap[store.id];
-                                                        return (
-                                                            <>
-                                                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                                                    <div className="bg-emerald-50/30 rounded-xl p-4 border border-emerald-100/30">
-                                                                        <div className="text-emerald-800/40 mb-1 font-bold uppercase tracking-tighter">Total Searches</div>
-                                                                        <div className="text-emerald-950 font-black text-2xl">{m.total_searches}</div>
-                                                                        <div className="text-emerald-600/50 mt-1 font-medium">{m.pinecone_searches} Pinecone · {m.native_searches} Native</div>
-                                                                    </div>
-                                                                    <div className="bg-emerald-50/30 rounded-xl p-4 border border-emerald-100/30">
-                                                                        <div className="text-emerald-800/40 mb-1 font-bold uppercase tracking-tighter">Fallback Rate</div>
-                                                                        <div className={`font-black text-2xl ${m.fallback_rate > 0.2 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                                                                            {(m.fallback_rate * 100).toFixed(0)}%
-                                                                        </div>
-                                                                        <div className="text-emerald-600/50 mt-1 font-medium">{m.fallback_rate > 0.2 ? '⚠ Needs Review' : '✓ Excellent'}</div>
-                                                                    </div>
-                                                                    <div className="bg-emerald-50/30 rounded-xl p-4 border border-emerald-100/30">
-                                                                        <div className="text-emerald-800/40 mb-1 font-bold uppercase tracking-tighter flex items-center gap-1"><Clock className="w-3 h-3" /> Latency</div>
-                                                                        <div className={`font-black text-2xl ${m.avg_latency_ms > 1000 ? 'text-amber-600' : 'text-emerald-950'}`}>{m.avg_latency_ms}ms</div>
-                                                                    </div>
-                                                                    <div className="bg-emerald-50/30 rounded-xl p-4 border border-emerald-100/30">
-                                                                        <div className="text-emerald-800/40 mb-1 font-bold uppercase tracking-tighter">AI Accuracy</div>
-                                                                        <div className={`font-black text-2xl ${m.avg_pinecone_score !== null && m.avg_pinecone_score > 0.75 ? 'text-emerald-600' : 'text-emerald-950'}`}>
-                                                                            {m.avg_pinecone_score !== null ? m.avg_pinecone_score.toFixed(3) : '—'}
-                                                                        </div>
-                                                                        {m.avg_ndcg !== null && <div className="text-emerald-600/50 mt-1 font-medium italic">NDCG: {m.avg_ndcg.toFixed(3)}</div>}
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Feedback */}
-                                                                {(m.thumbs_up + m.thumbs_down) > 0 && (
-                                                                    <div className="flex items-center gap-4 text-xs font-bold p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/30">
-                                                                        <span className="text-emerald-950/40 uppercase tracking-widest text-[10px]">Feedback:</span>
-                                                                        <span className="flex items-center gap-1.5 text-emerald-600 bg-white px-2 py-1 rounded-lg shadow-sm"><ThumbsUp className="w-3.5 h-3.5" />{m.thumbs_up}</span>
-                                                                        <span className="flex items-center gap-1.5 text-red-600 bg-white px-2 py-1 rounded-lg shadow-sm"><ThumbsDown className="w-3.5 h-3.5" />{m.thumbs_down}</span>
-                                                                        {m.feedback_ratio !== null && (
-                                                                            <span className="text-emerald-800/50">({(m.feedback_ratio * 100).toFixed(0)}% positive)</span>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Recent Queries */}
-                                                                {logsMap[store.id] && logsMap[store.id].length > 0 && (
-                                                                    <div>
-                                                                        <div className="text-[10px] text-emerald-950/30 mb-3 font-black uppercase tracking-widest">Recent Search Engine Activity</div>
-                                                                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                                                                            {logsMap[store.id].map(log => (
-                                                                                <div key={log.id} className="flex items-center justify-between text-xs bg-emerald-50/30 hover:bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-100/20 transition-colors">
-                                                                                    <div className="flex items-center gap-3 min-w-0">
-                                                                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tighter shrink-0 ${log.provider === 'pinecone' ? 'bg-indigo-100 text-indigo-700' : log.provider === 'hybrid' ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-50 text-emerald-400'}`}>
-                                                                                            {log.provider}
-                                                                                        </span>
-                                                                                        <span className="text-emerald-950/80 font-bold truncate">{log.query || (log.has_image ? '📸 Photo Search' : '—')}</span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center gap-3 shrink-0 ml-4 text-[10px] font-bold text-emerald-800/40">
-                                                                                        <span className="bg-white px-1.5 py-0.5 rounded shadow-sm">{log.results_count} hits</span>
-                                                                                        {log.pinecone_top_score !== null && <span className="text-emerald-600">{log.pinecone_top_score.toFixed(2)}</span>}
-                                                                                        <span>{log.latency_ms}ms</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {m.total_searches === 0 && (
-                                                                    <p className="text-center text-emerald-950/20 text-sm py-4 font-medium italic">No search activity recorded yet.</p>
-                                                                )}
-                                                            </>
-                                                        );
-                                                    })()}
+                                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                                                <div className="mt-4 p-6 bg-zinc-950/50 rounded-2xl border border-zinc-800/50 grid grid-cols-2 gap-6">
+                                                    {Object.entries({
+                                                        'Searches': metricsMap[store.id].total_searches,
+                                                        'AI Recs': metricsMap[store.id].pinecone_searches,
+                                                        'Latency': `${metricsMap[store.id].avg_latency_ms}ms`,
+                                                        'Accuracy': metricsMap[store.id].avg_pinecone_score?.toFixed(2) || '1.00'
+                                                    }).map(([label, val]) => (
+                                                        <div key={label} className="flex flex-col">
+                                                            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">{label}</span>
+                                                            <span className="text-xl font-bold text-zinc-100">{val}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
                                 </div>
 
-                                {/* Actions */}
-                                <div className="flex items-center gap-3">
+                                {/* Action Bar - Higher Emphasis */}
+                                <div className="mt-auto flex items-center gap-4">
                                     <a
                                         href={`/s/${store.slug}`}
                                         target="_blank"
-                                        className="flex-1 px-6 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-2xl text-sm font-bold text-center transition-all flex items-center justify-center gap-2 border border-emerald-100/50"
+                                        className="flex-1 px-6 py-4 bg-emerald-500/8 hover:bg-emerald-500/15 text-emerald-400 font-bold rounded-2xl transition-all border border-emerald-500/20 hover:border-emerald-500/40 flex items-center justify-center gap-2 group/btn"
                                     >
-                                        <ExternalLink className="w-4 h-4" />
-                                        Launch Storefront
+                                        <Bot className="w-5 h-5 group/btn:scale-110 transition-transform" />
+                                        Launch Concierge
                                     </a>
                                     <button
                                         onClick={() => handleDeleteStore(store.id)}
-                                        className="p-3 rounded-2xl hover:bg-red-50 text-emerald-200 hover:text-red-500 transition-all border border-transparent hover:border-red-100"
-                                        title="Delete store"
+                                        className="p-4 rounded-2xl bg-rose-500/5 hover:bg-rose-500/10 text-rose-500/40 hover:text-rose-500 border border-transparent hover:border-rose-500/20 transition-all"
+                                        title="Terminate Store"
                                     >
                                         <Trash2 className="w-5 h-5" />
                                     </button>
                                 </div>
                             </motion.div>
-
                         ))}
                     </div>
                 )}
