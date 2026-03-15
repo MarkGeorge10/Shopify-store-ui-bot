@@ -87,7 +87,7 @@ export default function LandingPage({
                         style={{ color: '#065f46', border: '1px solid rgba(6,95,70,0.3)', background: 'rgba(255,255,255,0.8)' }}
                     >
                         <Star className="w-4 h-4 text-emerald-500 fill-emerald-500" />
-                        Built for Gemini Live Agent Challenge 2025
+                        Built for Gemini Live Agent Challenge 2026
                         <Star className="w-4 h-4 text-emerald-500 fill-emerald-500" />
                     </motion.div>
 
