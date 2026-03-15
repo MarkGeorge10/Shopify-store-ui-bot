@@ -91,14 +91,14 @@ export default function LandingPage({
                         <Star className="w-4 h-4 text-emerald-500 fill-emerald-500" />
                     </motion.div>
 
-                    <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight leading-[1.05] mb-6 text-black">
+                    <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight leading-[1.05] mb-6 text-white">
                         Shop Smarter with
                         <span className="block gradient-text mt-2">AI Concierge</span>
                     </h1>
 
-                    <p className="text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-10" style={{ color: 'rgba(0,0,0,0.7)' }}>
+                    <p className="text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-10 text-white">
                         The world's most intelligent Shopify shopping agent. Ask anything, discover products,
-                        manage your cart, and checkout — powered by <strong className="text-black">Google Gemini</strong>.
+                        manage your cart, and checkout — powered by <strong className="text-white">Google Gemini</strong>.
                     </p>
 
                     <div className="flex items-center justify-center gap-4 flex-wrap">

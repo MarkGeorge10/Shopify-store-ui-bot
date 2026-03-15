@@ -49,6 +49,7 @@ interface SearchLogItem {
     fallback_used: boolean;
     latency_ms: number;
     user_feedback: number | null;
+    clicked_product_id?: string | null;
     created_at: string;
 }
 
@@ -510,18 +511,77 @@ export default function DashboardPage() {
                                     <AnimatePresence>
                                         {openAnalytics === store.id && metricsMap[store.id] && (
                                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                                                <div className="mt-4 p-6 bg-zinc-950/50 rounded-2xl border border-zinc-800/50 grid grid-cols-2 gap-6">
+                                                <div className="mt-4 p-6 bg-zinc-950/50 rounded-2xl border border-zinc-800/50 grid grid-cols-3 gap-6">
                                                     {Object.entries({
                                                         'Searches': metricsMap[store.id].total_searches,
-                                                        'AI Recs': metricsMap[store.id].pinecone_searches,
+                                                        'AI / Native': `${metricsMap[store.id].pinecone_searches} / ${metricsMap[store.id].native_searches}`,
+                                                        'Fallback': `${(metricsMap[store.id].fallback_rate * 100).toFixed(0)}%`,
+                                                        'Top Score': metricsMap[store.id].avg_pinecone_score?.toFixed(2) || '1.00',
+                                                        'Avg Res': metricsMap[store.id].avg_results_count.toFixed(1),
                                                         'Latency': `${metricsMap[store.id].avg_latency_ms}ms`,
-                                                        'Accuracy': metricsMap[store.id].avg_pinecone_score?.toFixed(2) || '1.00'
                                                     }).map(([label, val]) => (
                                                         <div key={label} className="flex flex-col">
                                                             <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">{label}</span>
-                                                            <span className="text-xl font-bold text-zinc-100">{val}</span>
+                                                            <span className="text-lg font-bold text-zinc-100">{val}</span>
                                                         </div>
                                                     ))}
+                                                </div>
+
+                                                {/* Search Logs Table */}
+                                                <div className="mt-4 bg-zinc-950/50 rounded-2xl border border-zinc-800/50 overflow-hidden">
+                                                    <div className="px-6 py-3 border-b border-zinc-800/50 flex justify-between items-center">
+                                                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Recent Activity Logs</span>
+                                                        <span className="text-[10px] text-zinc-600">Showing last 20 queries</span>
+                                                    </div>
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-left text-xs border-collapse">
+                                                            <thead className="text-zinc-500 font-bold uppercase tracking-tighter bg-zinc-900/40">
+                                                                <tr>
+                                                                    <th className="px-6 py-3">Query</th>
+                                                                    <th className="px-4 py-3">Provider</th>
+                                                                    <th className="px-4 py-3">Results</th>
+                                                                    <th className="px-4 py-3">Score</th>
+                                                                    <th className="px-4 py-3">Time</th>
+                                                                    <th className="px-4 py-3 text-right">Feedback</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-zinc-800/30">
+                                                                {logsMap[store.id]?.map((log) => (
+                                                                    <tr key={log.id} className="hover:bg-zinc-900/40 transition-colors">
+                                                                        <td className="px-6 py-3 font-medium text-zinc-300 max-w-[150px] truncate" title={log.query || '(Empty)'}>
+                                                                            {log.query || <span className="text-zinc-700 italic">Empty</span>}
+                                                                        </td>
+                                                                        <td className="px-4 py-3">
+                                                                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${
+                                                                                log.provider === 'pinecone' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'
+                                                                            }`}>
+                                                                                {log.provider === 'pinecone' ? 'Vector' : 'Native'}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-4 py-3 text-zinc-400 font-mono">{log.results_count}</td>
+                                                                        <td className="px-4 py-3 text-zinc-400 font-mono">
+                                                                            {log.pinecone_top_score ? log.pinecone_top_score.toFixed(3) : '-'}
+                                                                        </td>
+                                                                        <td className="px-4 py-3 text-zinc-500">
+                                                                            {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        </td>
+                                                                        <td className="px-4 py-3 text-right">
+                                                                            {log.user_feedback === 1 ? <ThumbsUp className="w-3 h-3 text-emerald-500 ml-auto" /> : 
+                                                                             log.user_feedback === -1 ? <ThumbsDown className="w-3 h-3 text-rose-500 ml-auto" /> : 
+                                                                             <span className="text-zinc-800 text-[10px]">—</span>}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                                {(logsMap[store.id]?.length === 0) && (
+                                                                    <tr>
+                                                                        <td colSpan={6} className="px-6 py-10 text-center text-zinc-600 font-medium">
+                                                                            No recent logs found.
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                         )}
